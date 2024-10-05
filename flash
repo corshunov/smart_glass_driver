@@ -1,0 +1,5 @@
+# <project_path> is path relative to user directory!
+
+arduino-cli compile -b arduino:avr:nano:cpu=atmega328old
+arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p "/dev/ttyUSB0"
+
