@@ -1,4 +1,4 @@
-#define LOG
+//#define LOG
 #define ALWAYS_ENABLE
 
 #define A_PIN 3
@@ -13,13 +13,21 @@ float ac_pause_ms;
 
 int ac_frequency = 111;
 
-float perc_border_1 = 0.05;
-float perc_border_2 = 0.25;
-float perc_high = 0.49;
+float perc_on_border_1 = 0.05;
+float perc_on_border_2 = 0.25;
 
-float step_start = 0.001;
-float step_middle = 0.0005;
-float step_end = 0.001;
+float step_on_start = 0.02;
+float step_on_middle = 0.001;
+float step_on_end = 0.002;
+
+float perc_off_border_1 = 0.15;
+float perc_off_border_2 = 0.30;
+
+float step_off_start = 0.0015;
+float step_off_middle = 0.004;
+float step_off_end = 0.004;
+
+float perc_high = 0.49;
 
 bool state = 0;
 
@@ -87,7 +95,7 @@ void turnOn() {
     Serial.println(i);
     #endif
 
-    step = get_step(i);
+    step = get_on_step(i);
     i = i + step;
   }
 }
@@ -102,7 +110,7 @@ void turnOff() {
     Serial.println(i);
     #endif
 
-    step = get_step(i);
+    step = get_off_step(i);
     i = i - step;
   }
 }
@@ -145,12 +153,22 @@ void cycle(float percent) {
   delayMicroseconds(ac_pause_ms);
 }
 
-float get_step(float perc) {
-  if (perc <= perc_border_1) {
-    return step_start;
-  } else if (perc <= perc_border_2) {
-    return step_middle;
+float get_on_step(float perc) {
+  if (perc <= perc_on_border_1) {
+    return step_on_start;
+  } else if (perc <= perc_on_border_2) {
+    return step_on_middle;
   } else {
-    return step_end;
+    return step_on_end;
+  }
+}
+
+float get_off_step(float perc) {
+  if (perc <= perc_off_border_1) {
+    return step_off_start;
+  } else if (perc <= perc_off_border_2) {
+    return step_off_middle;
+  } else {
+    return step_off_end;
   }
 }
