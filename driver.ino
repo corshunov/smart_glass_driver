@@ -14,7 +14,7 @@ float ac_pause_ms;
 int ac_frequency = 111;
 
 float perc_on_border_1 = 0.05;
-float perc_on_border_2 = 0.25;
+float perc_on_border_2 = 0.20;
 
 float step_on_start = 0.02;
 float step_on_middle = 0.001;
@@ -39,6 +39,7 @@ void setup() {
   ac_period = 1. / ac_frequency;
 
   Serial.begin(115200);
+
   Serial.println("Ready.");
 
   #ifdef ALWAYS_ENABLE
@@ -48,25 +49,55 @@ void setup() {
 }
 
 void loop() {
+  char cmd;
   float perc;
 
   if (Serial.available() > 0) {
-    char cmd = Serial.read();
+    cmd = Serial.read();
 
     #ifdef LOG
-    if (cmd != '\n') {
-      Serial.println(cmd);
-    }
+    Serial.println(cmd);
     #endif
 
     if (cmd == '1' && !state) {
+      Serial.print("ON");
+
+      #ifdef LOG
+      int time_before = millis();
+      #endif
+
       turnOn();
+
+      #ifdef LOG
+      int time_diff = millis() - time_before;
+      Serial.print(" [changed in ");
+      Serial.print(time_diff);
+      Serial.print(" ms]");
+      #endif
+
+      Serial.println("");
+
       state = !state;
-      Serial.println(state);
+
     } else if (cmd == '0' && state) {
+      Serial.print("OFF");
+
+      #ifdef LOG
+      int time_before = millis();
+      #endif
+
       turnOff();
+
+      #ifdef LOG
+      int time_diff = millis() - time_before;
+      Serial.print(" [changed in ");
+      Serial.print(time_diff);
+      Serial.print(" ms]");
+      #endif
+
+      Serial.println("");
+
       state = !state;
-      Serial.println(state);
     }
   }
 
@@ -77,12 +108,6 @@ void loop() {
   }
 
   cycle(perc);
-
-  #ifdef LOG
-  if (perc != PERC_LOW) {
-    Serial.println(perc);
-  }
-  #endif
 }
 
 void turnOn() {
@@ -90,10 +115,6 @@ void turnOn() {
   
   for (float i = PERC_LOW; i <= perc_high;) {
     cycle(i);
-
-    #ifdef LOG
-    Serial.println(i);
-    #endif
 
     step = get_on_step(i);
     i = i + step;
@@ -106,10 +127,6 @@ void turnOff() {
   for (float i = perc_high; i >= PERC_LOW;) {
     cycle(i);
     
-    #ifdef LOG
-    Serial.println(i);
-    #endif
-
     step = get_off_step(i);
     i = i - step;
   }
@@ -153,20 +170,20 @@ void cycle(float percent) {
   delayMicroseconds(ac_pause_ms);
 }
 
-float get_on_step(float perc) {
-  if (perc <= perc_on_border_1) {
+float get_on_step(float percent) {
+  if (percent <= perc_on_border_1) {
     return step_on_start;
-  } else if (perc <= perc_on_border_2) {
+  } else if (percent <= perc_on_border_2) {
     return step_on_middle;
   } else {
     return step_on_end;
   }
 }
 
-float get_off_step(float perc) {
-  if (perc <= perc_off_border_1) {
+float get_off_step(float percent) {
+  if (percent <= perc_off_border_1) {
     return step_off_start;
-  } else if (perc <= perc_off_border_2) {
+  } else if (percent <= perc_off_border_2) {
     return step_off_middle;
   } else {
     return step_off_end;
